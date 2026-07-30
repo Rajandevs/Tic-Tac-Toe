@@ -21,7 +21,7 @@
     justify-content: space-between;
 }
 .reset{
-    background-color: blue;
+    background-color: rgb(155, 155, 155);
     width: 200px;
     height: 40px;
     border-radius: 100px;
@@ -55,6 +55,8 @@
 }
 .choose{
     display: none;
+    flex-direction: column;
+    align-items: center;
 }
 .choose_o_or_x{
     display: flex;
@@ -114,4 +116,14 @@
 }
 .first_x{
     display:flex;
+}
+.choose_easy{
+    background-color: rgb(50, 205, 50);
+    padding: 5px;
+    border-radius: 10px;
+}
+.choose_hard{
+    background-color: rgb(255, 69, 58);
+    padding: 5px;
+    border-radius: 10px;
 }

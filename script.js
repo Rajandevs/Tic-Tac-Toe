@@ -1,15 +1,38 @@
 let x = document.querySelector(".choose_x")
 let o = document.querySelector(".choose_o")
+
 let choose = document.querySelector(".choose")
 let start = document.querySelector(".start")
+
 let chosenSymbol = "X";
 let notChosenSymbol = "O";
+
+
 let nums = [];
 let gameMode = "frn"
+let comp_gameMode = "easy"
+
+
+if (localStorage.getItem("gameMode") === "comp") {
+    comp()
+}
+
+
 let p1 = "X"
 let p2 = "O"
 let p
 
+let board = [
+    [null, null, null],
+    [null, null, null],
+    [null, null, null]
+]
+
+const win_patterns = [
+    [0, 1, 2], [3, 4, 5], [6, 7, 8],
+    [0, 3, 6], [1, 4, 7], [2, 5, 8],
+    [0, 4, 8], [2, 4, 6]
+]
 
 let x_win = Number(localStorage.getItem("x_win")) || 0;
 let o_win = Number(localStorage.getItem("o_win")) || 0;
@@ -25,6 +48,89 @@ function reset_score() {
     location.reload()
 }
 
+function choose_game_mode(mode) {
+    comp_gameMode = `${mode}`
+    // console.log(`${mode}`);
+    document.querySelector(".choose_game_mode").style.display = "none"
+    document.querySelector(".def").style.display = "none"
+    document.querySelector(".gameMode").style.display = "none"
+
+}
+
+function get_board_state() {
+    let board_state = []
+    for (let i = 1; i <= 9; i++) {
+        board_state.push(document.querySelector(`.box${i}`).innerHTML)
+    }
+    return board_state
+}
+
+function check_winner_arr(board_state) {
+    for (let pattern of win_patterns) {
+        const [a, b, c] = pattern;
+        if (board_state[a] && board_state[a] === board_state[b] && board_state[b] === board_state[c]) {
+            return board_state[a]
+        }
+    }
+    if (board_state.every(cell => cell !== "")) {
+        return "draw"
+    }
+    return null
+}
+
+function minimax(board_state, is_maximizing, comp_symbl, plr_symbl) {
+
+    let result = check_winner_arr(board_state)
+    if (result === comp_symbl) return 10
+    if (result === plr_symbl) return -10
+    if (result === "draw") return 0
+
+
+    if (is_maximizing) {
+        let best = -Infinity
+        for (let i = 0; i < 9; i++) {
+            if (board_state[i] === "") {
+                board_state[i] = comp_symbl
+                best = Math.max(best, minimax(board_state, false, comp_symbl, plr_symbl))
+                board_state[i] = ""
+            }
+        }
+        return best
+    }
+    else {
+        let best = Infinity
+        for (let i = 0; i < 9; i++) {
+            if (board_state[i] === "") {
+                board_state[i] = plr_symbl
+                best = Math.min(best, minimax(board_state, true, comp_symbl, plr_symbl))
+                board_state[i] = ""
+            }
+        }
+        return best
+    }
+
+}
+
+function get_best_move(comp_symbl, plr_symbl) {
+    let board_state = get_board_state()
+    let best_score = -Infinity
+    let move = -1
+
+    for (let i = 0; i < 9; i++) {
+        if (board_state[i] === "") {
+            board_state[i] = comp_symbl
+            let score = minimax(board_state, false, comp_symbl, plr_symbl)
+            board_state[i] = ""
+            if (score > best_score) {
+                best_score = score
+                move = i
+            }
+        }
+    }
+    return move + 1
+}
+
+
 function Choose(symbl) {
     chosenSymbol = symbl
     start.innerHTML = `Start as ${symbl}`;
@@ -39,11 +145,12 @@ function frn() {
     document.querySelector(".choose").style = "display:none"
     document.querySelector(".wins").style = "display:flex"
 
-    for(let i=1;i<=9;i++){
+    for (let i = 1; i <= 9; i++) {
         document.querySelector(`.box${i}`).innerHTML = ""
     }
 
     gameMode = "frn"
+    localStorage.setItem("gameMode", "frn")
 }
 function comp() {
     document.querySelector(".play_with_frn").style = "display:flex"
@@ -52,11 +159,12 @@ function comp() {
     document.querySelector(".choose").style = "display:flex"
     document.querySelector(".wins").style = "display:none"
 
-    for(let i=1;i<=9;i++){
+    for (let i = 1; i <= 9; i++) {
         document.querySelector(`.box${i}`).innerHTML = ""
     }
-    
+
     gameMode = "comp"
+    localStorage.setItem("gameMode", "comp")
 }
 
 function clicked(num) {
@@ -84,11 +192,25 @@ function clicked(num) {
             }
             let random_box;
 
-            do {
-                random_box = Math.floor(Math.random() * 9) + 1;
-            } while (document.querySelector(`.box${random_box}`).innerHTML !== "");
-
-            document.querySelector(`.box${random_box}`).innerHTML = notChosenSymbol;
+            let board_full = true
+            for (let i = 1; i <= 9; i++) {
+                if (document.querySelector(`.box${i}`).innerHTML === "") {
+                    board_full = false
+                    break
+                }
+            }
+            if (!board_full) {
+                let comp_box_num
+                if (comp_gameMode === "hard") {
+                    comp_box_num = get_best_move(notChosenSymbol, chosenSymbol)
+                }
+                else {
+                    do {
+                        comp_box_num = Math.floor(Math.random() * 9) + 1;
+                    } while (document.querySelector(`.box${comp_box_num}`).innerHTML !== "")
+                }
+                document.querySelector(`.box${comp_box_num}`).innerHTML = notChosenSymbol
+            }
         }
     }
     let box1 = document.querySelector(".box1").innerHTML
@@ -104,7 +226,8 @@ function clicked(num) {
 
     if ((box1 === box2 && box2 === box3 && box1 !== "") || (box1 === box4 && box4 === box7 && box1 !== "") || (box1 === box5 && box5 === box9 && box1 !== "")) {
         alert(`${box1.toUpperCase()} WON`);
-        if(gameMode==="frn"){
+        if (gameMode === "frn") {
+            localStorage.setItem("gameMode", "comp")
             if (box1 === "X") {
                 x_win += 1
                 localStorage.setItem("x_win", x_win)
@@ -113,11 +236,19 @@ function clicked(num) {
                 o_win += 1
                 localStorage.setItem("o_win", o_win)
             }
+            localStorage.setItem("gameMode", "plr")
         }
+        else if (gameMode === "comp") {
+            localStorage.setItem("gameMode", "comp")
+        }
+        window.location.reload()
     }
     else if (box3 === box6 && box6 === box9 && box3 !== "") {
         alert(`${box6.toUpperCase()} WON`);
-        if(gameMode==="frn"){
+        if (gameMode === "frn") {
+            window.location.reload()
+        }
+        if (gameMode === "frn") {
             if (box6 === "X") {
                 x_win += 1
                 localStorage.setItem("x_win", x_win)
@@ -126,11 +257,19 @@ function clicked(num) {
                 o_win += 1
                 localStorage.setItem("o_win", o_win)
             }
+            localStorage.setItem("gameMode", "plr")
         }
+        else if (gameMode === "comp") {
+            localStorage.setItem("gameMode", "comp")
+        }
+        window.location.reload()
     }
     else if (box7 === box8 && box8 === box9 && box7 !== "") {
         alert(`${box8.toUpperCase()} WON`);
-        if(gameMode==="frn"){
+        if (gameMode === "frn") {
+            window.location.reload()
+        }
+        if (gameMode === "frn") {
             if (box8 === "X") {
                 x_win += 1
                 localStorage.setItem("x_win", x_win)
@@ -139,11 +278,19 @@ function clicked(num) {
                 o_win += 1
                 localStorage.setItem("o_win", o_win)
             }
+            localStorage.setItem("gameMode", "plr")
         }
+        else if (gameMode === "comp") {
+            localStorage.setItem("gameMode", "comp")
+        }
+        window.location.reload()
     }
     else if ((box4 === box5 && box5 === box6 && box4 !== "") || (box2 === box5 && box5 === box8 && box2 !== "") || (box3 === box5 && box5 === box7 && box3 !== "")) {
         alert(`${box5.toUpperCase()} WON`);
-        if(gameMode==="frn"){
+        if (gameMode === "frn") {
+            window.location.reload()
+        }
+        if (gameMode === "frn") {
             if (box5 === "X") {
                 x_win += 1
                 localStorage.setItem("x_win", x_win)
@@ -152,7 +299,22 @@ function clicked(num) {
                 o_win += 1
                 localStorage.setItem("o_win", o_win)
             }
+            localStorage.setItem("gameMode", "plr")
         }
+        else if (gameMode === "comp") {
+            localStorage.setItem("gameMode", "comp")
+        }
+        window.location.reload()
+    }
+    else if(box1 !== "" &&box2 !== ""&&box3 !== ""&&box4 !== ""&&box5 !== ""&&box6 !== ""&&box7 !== ""&&box8 !== ""&&box9 !== ""){
+        alert("DRAW")
+        if(gameMode==="frn"){
+            localStorage.setItem("gameMode","plr")
+        }
+        else if(gameMode==="comp"){
+            localStorage.setItem("gameMode","comp")
+        }
+        window.location.reload()
     }
     // console.log(nums);
 }

@@ -11,9 +11,11 @@
 <body>
     <div class="main_body">
         <div class="wins">
-            <div class="x_wins">X-Wins: <div class="x_win_count">0</div></div>
+            <div class="x_wins">X-Wins: <div class="x_win_count">0</div>
+            </div>
             <div class="reset" onclick="reset_score()">Reset Score</div>
-            <div class="o_wins">O-Wins: <div class="o_win_count">0</div></div>
+            <div class="o_wins">O-Wins: <div class="o_win_count">0</div>
+            </div>
         </div>
         <div class="game_cont">
             <div class="box box1" onclick="clicked(1)"></div>
@@ -29,12 +31,22 @@
         <div class="first_x">
             First Player is X
         </div>
-        <div class="choose">Choose Your Symbol:
+        <div class="choose">
+            <div class="gameMode">Choose Game Mode:</div>
+            <div class="choose_game_mode choose_o_or_x">
+                <div class="choose_easy" onclick="choose_game_mode('easy')">Easy</div>
+                <div class="choose_hard" onclick="choose_game_mode('hard')">Hard</div>
+            </div>
+            <div class="def">Defult Game Mode is Easy</div>
+            <br>
+            <div>Choose Your Symbol:</div>
             <div class="choose_o_or_x">
                 <div class="choose_x" onclick="Choose('X')">X</div>
                 <div class="choose_o" onclick="Choose('O')">O</div>
             </div>
+
         </div>
+        <br>
         <div class="start">Start as </div>
         <div class="re_play_w_frn_play_comp">
             <div class='restart' onclick="location.reload()">Restart</div>
